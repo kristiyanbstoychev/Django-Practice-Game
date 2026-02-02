@@ -1,5 +1,13 @@
 from django.db import models
 
+# ===== LOCATION MODEL =====
+class Location(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
 # ===== CHARACTER MODEL =====
 class Character(models.Model):
     # This stores the character's name as text
@@ -10,6 +18,13 @@ class Character(models.Model):
     
     # This stores the level - starts at level 1
     level = models.IntegerField(default=1)
+    
+    current_location = models.ForeignKey(
+        Location, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+    )
 
     # This makes the character show their name in the admin panel
     def __str__(self):
@@ -44,3 +59,4 @@ class Quest(models.Model):
 
     def __str__(self):
         return f"{self.title} - {'Done' if self.is_completed else 'Active'}"
+    
