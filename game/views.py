@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 # This imports the Character model so the view can look at the data
-from .models import Character
+from .models import Character, Quest
 # 'get_object_or_404' to help us find a specific character or show an error if they don't exist
 from django.shortcuts import get_object_or_404
 
@@ -66,3 +66,14 @@ def level_up(request, char_id):
     hero.save()
     
     return HttpResponse(f"{hero.name} reached Level {hero.level}! Health increased to {hero.health}.")
+
+# ===== QUESTS LIST VIEW =====
+def quests_list(request):
+    all_quests = Quest.objects.all()
+    
+    response_text = "<h1>Quests</h1>"
+    
+    for quest in all_quests:        
+        response_text += f"<p><strong>Quest title: {quest.title}</strong> - {quest.description}. Assigned to {quest.assigned_to}. Completion status: {quest.is_completed}"
+    
+    return HttpResponse(response_text)
