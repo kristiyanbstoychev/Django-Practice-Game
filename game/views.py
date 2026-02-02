@@ -23,22 +23,25 @@ def character_list(request):
     
     return HttpResponse(response_text)
 
-# ===== COMBAT VIEW =====
-# This function handles a "fight" for a specific character using their ID number
+# ===== UPDATED COMBAT VIEW =====
 def basic_combat(request, char_id):
-    # 1. Find the hero in the database using their unique ID number
     hero = get_object_or_404(Character, pk=char_id)
     
-    # 2. Define the damage - like a monster hitting for 10 points
-    damage = 10
-    
-    # 3. Update the health - taking away "hearts" from the hero
+    # Simulate an attack
+    damage = 20
     hero.health -= damage
-    
-    # 4. Save the change - this is CRITICAL! It writes the new health back to the database
     hero.save()
     
-    return HttpResponse(f"{hero.name} took {damage} damage! Current Health: {hero.health}")
+    # Check the hero's status
+    if hero.health <= 0:
+        status_message = f"{hero.name} has been defeated! Game Over."
+        # Reset health for the next attempt
+        hero.health = 100
+        hero.save()
+    else:
+        status_message = f"{hero.name} took {damage} damage. Remaining HP: {hero.health}"
+    
+    return HttpResponse(status_message)
 
 # ===== LEVEL UP VIEW =====
 # This function makes a specific hero stronger
