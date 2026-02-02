@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from .models import Character, Quest, Item, Location
 # 'get_object_or_404' to help us find a specific character or show an error if they don't exist
 from django.shortcuts import get_object_or_404
+from django.shortcuts import render # We use 'render' for templates
 
 # ===== CHARACTER LIST VIEW =====
 def character_list(request):
@@ -167,3 +168,8 @@ def travel(request, char_id, loc_id):
     hero.save()
     
     return HttpResponse(f"{hero.name} traveled to the {destination.name}!")
+
+def character_detail(request, char_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    # This sends the 'hero' data to the HTML file
+    return render(request, 'game/character_detail.html', {'hero': hero})

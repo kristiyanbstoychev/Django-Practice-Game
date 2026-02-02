@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ hero.name }}'s Profile</title>
+</head>
+<body>
+    <h1>🛡️ Hero: {{ hero.name }}</h1>
+    <p>Level: {{ hero.level }} | HP: {{ hero.health }}</p>
+    
+    <h3>📍 Location: {{ hero.current_location.name }}</h3>
+    <p>{{ hero.current_location.description }}</p>
+
+    <hr>
+    <a href="/game/characters/">Back to World Map</a>
+</body>
+</html>
