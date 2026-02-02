@@ -66,3 +66,16 @@ def level_up(request, char_id):
     hero.save()
     
     return HttpResponse(f"{hero.name} reached Level {hero.level}! Health increased to {hero.health}.")
+
+# ===== HERO REST VIEW =====
+def rest(request, char_id):
+    # 1. Find the hero
+    hero = get_object_or_404(Character, pk=char_id)
+    
+    # 2. Restore the health of a given hero to 100
+    hero.health = 100
+    
+    # 3. Save the changes
+    hero.save()
+    
+    return HttpResponse(f"{hero.name} rested sucessfully! Health restored to {hero.health}.")
