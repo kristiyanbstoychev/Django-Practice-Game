@@ -1,16 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ hero.name }}'s Profile</title>
-</head>
-<body>
-    <h1>🛡️ Hero: {{ hero.name }}</h1>
+<h1>Hero: {{ hero.name }}</h1>
     <p>Level: {{ hero.level }} | HP: {{ hero.health }}</p>
+    <p>Items: {{hero_items}}</p>
     
-    <h3>📍 Location: {{ hero.current_location.name }}</h3>
-    <p>{{ hero.current_location.description }}</p>
+    <h3>Location: {{ hero.current_location.name }}</h3>
 
     <hr>
-    <a href="/game/characters/">Back to World Map</a>
-</body>
-</html>
+    
+    <h2>Choose an Action:</h2>
+    <ul>
+        <li><a href="{% url 'basic_combat' hero.id %}">Fight a Monster</a></li>
+        <li><a href="{% url 'rest' hero.id %}">Rest at Inn</a></li>
+        <li><a href="{% url 'quest_log' hero.id %}">Check Quest Log</a></li>
+    </ul>
+
+    <h3>Travel to:</h3>
+    <ul>
+        {% for loc in all_locations %}
+            <li><a href="{% url 'travel' hero.id loc.id %}">{{ loc.name }}</a></li>
+        {% endfor %}
+    </ul>
