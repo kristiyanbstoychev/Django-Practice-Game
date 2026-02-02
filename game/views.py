@@ -39,3 +39,18 @@ def basic_combat(request, char_id):
     hero.save()
     
     return HttpResponse(f"{hero.name} took {damage} damage! Current Health: {hero.health}")
+
+# ===== LEVEL UP VIEW =====
+# This function makes a specific hero stronger
+def level_up(request, char_id):
+    # 1. Find the hero
+    hero = get_object_or_404(Character, pk=char_id)
+    
+    # 2. Increase stats - adding to the existing numbers
+    hero.level += 1
+    hero.health += 20 # Give them more health for leveling up
+    
+    # 3. Save the changes - making the "Level Up" permanent
+    hero.save()
+    
+    return HttpResponse(f"{hero.name} reached Level {hero.level}! Health increased to {hero.health}.")
