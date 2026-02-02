@@ -13,4 +13,6 @@ urlpatterns = [
     path('buy-item/<int:char_id>/<int:item_id>', views.buy_item, name='buy_item'),
     path('travel/<int:char_id>/<int:loc_id>/', views.travel, name='travel'),
     path('character/<int:char_id>/', views.character_detail, name='character_detail'),
+    path('rename_hero/<int:char_id>/<str:new_name>', views.rename_hero, name='rename_hero'),
+
 ]
