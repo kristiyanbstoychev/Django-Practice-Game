@@ -27,4 +27,20 @@ class Item(models.Model):
     owner = models.ForeignKey(Character, on_delete=models.CASCADE, related_name="items")
 
     def __str__(self):
-        return f"{self.name} (Owned by {self.owner.name})"    
+        return f"{self.name} (Owned by {self.owner.name})"
+    
+# ===== QUEST MODEL =====
+class Quest(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    is_completed = models.BooleanField(default=False) # A simple Yes/No switch
+    
+    # Link to a specific Character
+    assigned_to = models.ForeignKey(
+        Character, 
+        on_delete=models.CASCADE, 
+        related_name="quests"
+    )
+
+    def __str__(self):
+        return f"{self.title} - {'Done' if self.is_completed else 'Active'}"
