@@ -7,4 +7,5 @@ urlpatterns = [
     path('quests/', views.quests_list, name='quests_list'),
     path('combat/<int:char_id>/', views.basic_combat, name='basic_combat'),
     path('levelup/<int:char_id>/', views.level_up, name='level_up'),
+    path('rest/<int:char_id>/', views.rest, name='rest'),
 ]
