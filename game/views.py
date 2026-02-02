@@ -171,5 +171,10 @@ def travel(request, char_id, loc_id):
 
 def character_detail(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
-    # This sends the 'hero' data to the HTML file
-    return render(request, 'game/character_detail.html', {'hero': hero})
+    hero_items = hero.items.all()
+    all_locations = Location.objects.all() # Get all possible destinations
+    return render(request, 'game/character_detail.html', {
+        'hero': hero,
+        'all_locations': all_locations,
+        'hero_items': hero_items
+    })
