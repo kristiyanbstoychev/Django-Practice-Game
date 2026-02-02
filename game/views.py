@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 # This imports the Character model so the view can look at the data
-from .models import Character, Quest, Item
+from .models import Character, Quest, Item, Location
 # 'get_object_or_404' to help us find a specific character or show an error if they don't exist
 from django.shortcuts import get_object_or_404
 
@@ -11,7 +11,7 @@ def character_list(request):
     response_text = "<h1>World Heroes</h1>"
     
     for hero in all_characters:
-        response_text += f"<hr><strong>{hero.name}</strong> (HP: {hero.health})<br> <hr>Inventory: <hr>"
+        response_text += f"<hr><strong>{hero.name}</strong> (HP: {hero.health})<br>Location: {hero.current_location}<br> <hr>Inventory: <hr>"
 
         # Use the tether 'items' to find all items belonging to this specific hero
         # .all() here gets every item attached to this one character
@@ -155,3 +155,15 @@ def buy_item(request, char_id, item_id):
     item.save()
     
     return HttpResponse(f"{hero.name} bought {item.name} from {old_owner_name}!")
+
+# ===== TRAVEL VIEW =====
+def travel(request, char_id, loc_id):
+    # 1. Fetch the hero and the destination
+    hero = get_object_or_404(Character, pk=char_id)
+    destination = get_object_or_404(Location, pk=loc_id)
+    
+    # 2. Update the hero's position
+    hero.current_location = destination
+    hero.save()
+    
+    return HttpResponse(f"{hero.name} traveled to the {destination.name}!")
