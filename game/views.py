@@ -5,17 +5,23 @@ from .models import Character
 from django.shortcuts import get_object_or_404
 
 # ===== CHARACTER LIST VIEW =====
-# This function handles the request to see all heroes
 def character_list(request):
-    # This asks the database: "Give me every character you have!"
     all_characters = Character.objects.all()
     
-    # We will start by creating a simple text string of names
-    # Like making a list of names on a piece of paper
-    names = ", ".join([c.name for c in all_characters])
+    response_text = "<h1>World Heroes</h1>"
     
-    # This sends the list back to the user's browser
-    return HttpResponse(f"Heroes in this world: {names}")
+    for hero in all_characters:
+        # Use the tether 'items' to find all items belonging to this specific hero
+        # .all() here gets every item attached to this one character
+        inventory = hero.items.all()
+
+        # Create a list of item names - like listing contents of a backpack
+        item_names = ", ".join([item.name for item in inventory]) or "Empty Backpack"
+        
+        response_text += f"<p><strong>{hero.name}</strong> (HP: {hero.health})<br>"
+        response_text += f"Inventory: {item_names}</p><hr>"
+    
+    return HttpResponse(response_text)
 
 # ===== COMBAT VIEW =====
 # This function handles a "fight" for a specific character using their ID number
