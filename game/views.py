@@ -79,17 +79,32 @@ def rest(request, char_id):
     
     return HttpResponse(f"{hero.name} reached Level {hero.level}! Health increased to {hero.health}.")
 
-
-# ===== QUESTS LIST VIEW =====
-def quests_list(request):
-    all_quests = Quest.objects.all()
+# ===== QUEST LOG VIEW =====
+def quest_log(request, char_id):
+    hero = get_object_or_404(Character, pk=char_id)
     
-    response_text = "<h1>Quests</h1>"
+    # 1. Filter for quests that belong to THIS hero and are NOT done
+    # 'assigned_to=hero' checks the owner
+    # 'is_completed=False' checks the status
+    active_quests = Quest.objects.filter(assigned_to=hero, is_completed=False)
     
-    for quest in all_quests:        
-        response_text += f"<p><strong>Quest title: {quest.title}</strong> - {quest.description}. Assigned to {quest.assigned_to}. Completion status: {quest.is_completed}"
+    # 2. Filter for quests that ARE done
+    completed_quests = Quest.objects.filter(assigned_to=hero, is_completed=True)
     
-    return HttpResponse(response_text)
+    # 3. Build the display
+    response = f"<h1>{hero.name}'s Quest Log</h1>"
+    
+    response += "<h3>Active Quests:</h3><ul>"
+    for q in active_quests:
+        response += f"<li>{q.title} (ID: {q.id})</li>"
+    response += "</ul>"
+    
+    response += "<h3>Completed Quests:</h3><ul>"
+    for q in completed_quests:
+        response += f"<li>{q.title}</li>"
+    response += "</ul>"
+    
+    return HttpResponse(response)
 
 # ===== ASSIGN QUEST VIEW =====
 def assign_quest(request, char_id, quest_id):
