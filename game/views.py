@@ -23,11 +23,15 @@ def character_list(request):
     
     return HttpResponse(response_text)
 
-# ===== UPDATED COMBAT VIEW =====
+# ===== COMBAT VIEW WITH SESSION TRACKING =====
 def basic_combat(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
     
-    # Simulate an attack
+    # 1. Get the current battle count from the "Visitor's Badge" (Session)
+    # If it doesn't exist yet, we start at 0
+    total_battles = request.session.get('battle_count', 0)
+    
+    # 2. Perform combat logic
     damage = 20
     hero.health -= damage
     hero.save()
@@ -39,7 +43,12 @@ def basic_combat(request, char_id):
         hero.health = 100
         hero.save()
     else:
-        status_message = f"{hero.name} took {damage} damage. Remaining HP: {hero.health}"
+        status_message = f"{hero.name} took {damage} damage. <br>Remaining HP: {hero.health}.<br> <br>"
+
+    # 3. Increase the count and save it back to the session
+    request.session['battle_count'] = total_battles + 1
+    
+    status_message += f"Total battles fought this session: {request.session['battle_count']}"
     
     return HttpResponse(status_message)
 
