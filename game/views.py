@@ -138,3 +138,20 @@ def complete_quest(request, quest_id):
         return HttpResponse(f"Quest Complete! {hero.name} received {reward.power} {reward.name}!")
     else:
         return HttpResponse("This quest was already finished!")
+    
+    # ===== BUY ITEM VIEW =====
+def buy_item(request, char_id, item_id):
+    # 1. Find the Hero and the Item
+    hero = get_object_or_404(Character, pk=char_id)
+    item = get_object_or_404(Item, pk=item_id)
+    
+    # 2. Check if the item actually belongs to a Merchant (or someone else)
+    old_owner_name = item.owner.name
+    
+    # 3. Change the owner tether to our Hero
+    item.owner = hero
+    
+    # 4. Save the change to the database
+    item.save()
+    
+    return HttpResponse(f"{hero.name} bought {item.name} from {old_owner_name}!")
