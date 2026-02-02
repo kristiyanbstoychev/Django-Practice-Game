@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 # This imports the Character model so the view can look at the data
-from .models import Character, Quest
+from .models import Character, Quest, Item
 # 'get_object_or_404' to help us find a specific character or show an error if they don't exist
 from django.shortcuts import get_object_or_404
 
@@ -11,16 +11,19 @@ def character_list(request):
     response_text = "<h1>World Heroes</h1>"
     
     for hero in all_characters:
+        response_text += f"<hr><strong>{hero.name}</strong> (HP: {hero.health})<br> <hr>Inventory: <hr>"
+
         # Use the tether 'items' to find all items belonging to this specific hero
         # .all() here gets every item attached to this one character
         inventory = hero.items.all()
-
-        # Create a list of item names - like listing contents of a backpack
-        item_names = ", ".join([item.name for item in inventory]) or "Empty Backpack"
-        
-        response_text += f"<p><strong>{hero.name}</strong> (HP: {hero.health})<br>"
-        response_text += f"Inventory: {item_names}</p><hr>"
-    
+        for items in inventory:
+            item_name = items.name
+            item_power = items.power
+            if inventory:
+                response_text += f"{item_name} power/quantiy: {item_power} <br>"
+            else:    
+                response_text += 'Empty backpack'
+                        
     return HttpResponse(response_text)
 
 # ===== COMBAT VIEW WITH SESSION TRACKING =====
@@ -115,18 +118,23 @@ def assign_quest(request, char_id, quest_id):
     
     return HttpResponse(f"Quest '{quest.title}' assigned to {hero.name}!")
 
-# ===== COMPLETE QUEST VIEW =====
+# ===== QUEST COMPLETION WITH REQUIREMENTS =====
 def complete_quest(request, quest_id):
-    # Find the quest by its own unique ID
     quest = get_object_or_404(Quest, pk=quest_id)
-    
-    # Flip the switch to True
-    quest.is_completed = True
-    quest.save()
-    
-    # Give the hero a reward for finishing!
     hero = quest.assigned_to
-    hero.level += 1
-    hero.save()
-    
-    return HttpResponse(f"{quest.title} completed! {hero.name} reached Level {hero.level}.")
+
+    # 1. The Requirement: Hero must be at least Level 2
+    if hero.level < 2:
+        return HttpResponse(f"{hero.name}, you are too weak! You must be Level 2 to complete this quest.")
+
+    # 2. If they meet the requirement, finish the quest
+    if not quest.is_completed:
+        quest.is_completed = True
+        quest.save()
+        
+        # Reward
+        reward = Item.objects.create(name="Gold", power=5, owner=hero)
+        
+        return HttpResponse(f"Quest Complete! {hero.name} received {reward.power} {reward.name}!")
+    else:
+        return HttpResponse("This quest was already finished!")
