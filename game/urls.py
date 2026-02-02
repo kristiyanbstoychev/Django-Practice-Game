@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     # This says: "If the user types 'characters/', show them the character_list"
     path('characters/', views.character_list, name='character_list'),
-    path('quests/', views.quests_list, name='quests_list'),
+    path('quests/<int:char_id>/', views.quest_log, name='quest_log'),
     path('combat/<int:char_id>/', views.basic_combat, name='basic_combat'),
     path('levelup/<int:char_id>/', views.level_up, name='level_up'),
     path('rest/<int:char_id>/', views.rest, name='rest'),
