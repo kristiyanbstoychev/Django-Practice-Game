@@ -2,8 +2,7 @@ from django.http import HttpResponse
 # This imports the Character model so the view can look at the data
 from .models import Character, Quest, Item, Location
 # 'get_object_or_404' to help us find a specific character or show an error if they don't exist
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render # We use 'render' for templates
+from django.shortcuts import get_object_or_404, render, redirect
 
 # ===== CHARACTER LIST VIEW =====
 def character_list(request):
@@ -57,19 +56,15 @@ def basic_combat(request, char_id):
     return HttpResponse(status_message)
 
 # ===== LEVEL UP VIEW =====
-# This function makes a specific hero stronger
 def level_up(request, char_id):
-    # 1. Find the hero
     hero = get_object_or_404(Character, pk=char_id)
-    
-    # 2. Increase stats - adding to the existing numbers
     hero.level += 1
-    hero.health += 20 # Give them more health for leveling up
-    
-    # 3. Save the changes - making the "Level Up" permanent
+    hero.health += 20
     hero.save()
     
-    return HttpResponse(f"{hero.name} reached Level {hero.level}! Health increased to {hero.health}.")
+    # Instead of HttpResponse, we send them to the 'character_detail' view
+    # We pass the hero's ID so it knows which profile to show
+    return redirect('character_detail', char_id=hero.id)
 
 # ===== REST VIEW =====
 def rest(request, char_id):
@@ -81,7 +76,7 @@ def rest(request, char_id):
     # 3. Save the changes - making the "Level Up" permanent
     hero.save()
     
-    return HttpResponse(f"{hero.name} reached Level {hero.level}! Health increased to {hero.health}.")
+    return redirect('character_detail', char_id=hero.id)
 
 # ===== QUEST LOG VIEW =====
 def quest_log(request, char_id):
@@ -167,7 +162,7 @@ def travel(request, char_id, loc_id):
     hero.current_location = destination
     hero.save()
     
-    return HttpResponse(f"{hero.name} traveled to the {destination.name}!")
+    return redirect('character_detail', char_id=hero.id)
 
 def character_detail(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
@@ -178,3 +173,12 @@ def character_detail(request, char_id):
         'all_locations': all_locations,
         'hero_items': hero_items
     })
+
+def rename_hero(request, char_id, new_name):
+    hero = get_object_or_404(Character, pk=char_id)
+    
+    # Update the name
+    hero.name = new_name
+    hero.save()
+    
+    return redirect('character_detail', char_id=hero.id)
