@@ -12,4 +12,5 @@ urlpatterns = [
     path('complete-quest/<int:quest_id>/', views.complete_quest, name='complete_quest'),
     path('buy-item/<int:char_id>/<int:item_id>', views.buy_item, name='buy_item'),
     path('travel/<int:char_id>/<int:loc_id>/', views.travel, name='travel'),
+    path('character/<int:char_id>/', views.character_detail, name='character_detail'),
 ]
