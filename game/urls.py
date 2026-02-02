@@ -14,5 +14,8 @@ urlpatterns = [
     path('travel/<int:char_id>/<int:loc_id>/', views.travel, name='travel'),
     path('character/<int:char_id>/', views.character_detail, name='character_detail'),
     path('rename_hero/<int:char_id>/<str:new_name>', views.rename_hero, name='rename_hero'),
-
+    path('battle/start/<int:char_id>/<int:enemy_id>/', views.start_battle, name='start_battle'),
+    path('select_enemy/<int:char_id>/', views.select_enemy, name='select_enemy'),
+    path('attack_enemy/<int:char_id>/', views.attack_enemy, name='attack_enemy'),
+    path('arena/<int:char_id>/', views.battle_arena, name='battle_arena'),
 ]

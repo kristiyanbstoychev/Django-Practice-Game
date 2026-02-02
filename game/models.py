@@ -8,6 +8,15 @@ class Location(models.Model):
     def __str__(self):
         return self.name
 
+class Enemy(models.Model):
+    name = models.CharField(max_length=100)
+    health = models.IntegerField(default=50)
+    attack_power = models.IntegerField(default=10)
+    xp_reward = models.IntegerField(default=20)
+
+    def __str__(self):
+        return f"{self.name} (HP: {self.health})"
+
 # ===== CHARACTER MODEL =====
 class Character(models.Model):
     # This stores the character's name as text
@@ -16,9 +25,20 @@ class Character(models.Model):
     # This stores health as a whole number - starts at 100
     health = models.IntegerField(default=100)
     
+    strength = models.IntegerField(default=50)
+
+    xp = models.IntegerField(default=0)
+
     # This stores the level - starts at level 1
     level = models.IntegerField(default=1)
     
+    current_enemy = models.ForeignKey(
+        Enemy, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+    )
+
     current_location = models.ForeignKey(
         Location, 
         on_delete=models.SET_NULL, 
