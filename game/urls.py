@@ -9,5 +9,6 @@ urlpatterns = [
     path('levelup/<int:char_id>/', views.level_up, name='level_up'),
     path('rest/<int:char_id>/', views.rest, name='rest'),
     path('assign-quest/<int:char_id>/<int:quest_id>', views.assign_quest, name='assign_quest'),
-    path('complete-quest/<int:quest_id>/', views.complete_quest, name='complete_quest')
+    path('complete-quest/<int:quest_id>/', views.complete_quest, name='complete_quest'),
+    path('buy-item/<int:char_id>/<int:item_id>', views.buy_item, name='buy_item')
 ]
