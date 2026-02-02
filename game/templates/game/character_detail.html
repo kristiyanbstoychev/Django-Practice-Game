@@ -1,22 +1,83 @@
-<h1>Hero: {{ hero.name }}</h1>
-    <p>Level: {{ hero.level }} | HP: {{ hero.health }}</p>
-    <p>Items: {{hero_items}}</p>
-    
-    <h3>Location: {{ hero.current_location.name }}</h3>
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', sans-serif;
+        text-align: center;
+    }
 
-    <hr>
-    
-    <h2>Choose an Action:</h2>
-    <ul>
-        <li><a href="{% url 'basic_combat' hero.id %}">Fight a Monster</a></li>
-        <li><a href="{% url 'rest' hero.id %}">Rest at Inn</a></li>
-        <li><a href="{% url 'quest_log' hero.id %}">Check Quest Log</a></li>
-        <li><a href="{% url 'rename_hero' hero.id 'Mike' %}">Rename hero</a></li>
-    </ul>
+    /* 1. Profile Header */
+    .profile-header {
+        background: #1e1e1e;
+        border-bottom: 3px solid #4a90e2;
+        padding: 40px;
+        margin-bottom: 30px;
+    }
 
-    <h3>Travel to:</h3>
-    <ul>
-        {% for loc in all_locations %}
-            <li><a href="{% url 'travel' hero.id loc.id %}">{{ loc.name }}</a></li>
-        {% endfor %}
-    </ul>
+    /* 2. Stat Bar */
+    .stat-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        font-size: 1.2rem;
+    }
+
+    .stat-box {
+        background: #2a2a2a;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 1px solid #444;
+    }
+
+    /* 3. Action Grid */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .action-card {
+        background: #1e1e1e;
+        border: 1px solid #333;
+        padding: 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: white;
+        transition: 0.3s;
+    }
+
+    .action-card:hover {
+        border-color: #4a90e2;
+        transform: translateY(-5px);
+        background: #252525;
+    }
+</style>
+
+<div class="profile-header">
+    <h1>Hero: {{ hero.name }}</h1>
+    <div class="stat-container">
+        <div class="stat-box">⭐ Level: {{ hero.level }}</div>
+        <div class="stat-box">❤️ HP: {{ hero.health }}</div>
+        <div class="stat-box">✨ XP: {{ hero.xp }}</div>
+    </div>
+    <h3>📍 Location: {{ hero.current_location.name }}</h3>
+</div>
+
+<h2>Take Action</h2>
+<div class="action-grid">
+    <a href="{% url 'select_enemy' hero.id %}" class="action-card" style="border-color: #ef4444;">
+        <h3>⚔️ Battle</h3>
+        <p>Find an enemy to fight</p>
+    </a>
+    <a href="{% url 'rest' hero.id %}" class="action-card">
+        <h3>💤 Rest</h3>
+        <p>Recover your health</p>
+    </a>
+    <a href="{% url 'quest_log' hero.id %}" class="action-card">
+        <h3>📜 Quests</h3>
+        <p>View your progress</p>
+    </a>
+</div>

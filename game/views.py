@@ -1,8 +1,9 @@
 from django.http import HttpResponse
 # This imports the Character model so the view can look at the data
-from .models import Character, Quest, Item, Location
+from .models import Character, Quest, Item, Location, Enemy
 # 'get_object_or_404' to help us find a specific character or show an error if they don't exist
 from django.shortcuts import get_object_or_404, render, redirect
+from django.views.decorators.http import require_POST
 
 # ===== CHARACTER LIST VIEW =====
 def character_list(request):
@@ -60,6 +61,7 @@ def level_up(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
     hero.level += 1
     hero.health += 20
+    hero.strength += 10
     hero.save()
     
     # Instead of HttpResponse, we send them to the 'character_detail' view
@@ -182,3 +184,72 @@ def rename_hero(request, char_id, new_name):
     hero.save()
     
     return redirect('character_detail', char_id=hero.id)
+
+@require_POST # This ensures the API only responds to POST requests
+def start_battle(request, char_id, enemy_id):
+    # 1. Fetch both objects
+    hero = get_object_or_404(Character, pk=char_id)
+    enemy = get_object_or_404(Enemy, pk=enemy_id)
+
+    # 2. Assign the 'tether'
+    hero.current_enemy = enemy
+    hero.save()
+
+    # 3. Redirect or return a response
+    return redirect('battle_arena', char_id=hero.id)
+
+def attack_enemy(request, char_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    enemy = hero.current_enemy
+
+    if request.method == "POST" and enemy:
+        # 1. Hero deals damage
+        enemy.health -= hero.strength # Assuming you have a 'strength' field
+        enemy.save()
+
+        # 2. Check if enemy is still alive
+        if enemy.health <= 0:
+           if enemy.health <= 0:
+            # 1. Award XP
+            hero.xp += enemy.xp_reward
+            enemy.health = 100
+        # 2. Check for Level Up
+            if hero.xp >= 100:
+                hero.level += 1
+                hero.health += 20
+                hero.xp = 0 # Reset or carry over XP
+                # You could also add a message here!
+            # 3. Cleanup
+            hero.current_enemy = None
+            hero.save()
+            return redirect('character_detail', char_id=hero.id)
+        
+        # 3. Enemy Retaliation (Only happens if enemy.health > 0)
+        hero.health -= enemy.attack_power
+        hero.save()
+
+    return redirect('battle_arena', char_id=hero.id)
+
+def select_enemy(request, char_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    # Get all monsters currently in the database
+    available_enemies = Enemy.objects.all() 
+    
+    return render(request, 'game/select_enemy.html', {
+        'hero': hero,
+        'enemies': available_enemies
+    })
+
+def battle_arena(request, char_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    # Get the enemy linked to this hero
+    enemy = hero.current_enemy 
+    
+    if not enemy:
+        # If no enemy is assigned, send them back to pick one
+        return redirect('select_enemy', char_id=hero.id)
+
+    return render(request, 'game/battle_arena.html', {
+        'hero': hero,
+        'enemy': enemy
+    })

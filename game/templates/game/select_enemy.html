@@ -1,0 +1,94 @@
+<style>
+    /* 1. Dark Theme Background */
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center;
+        padding: 40px;
+    }
+
+    h2 {
+        color: #4a90e2; /* Heroic Blue */
+        margin-bottom: 40px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    /* 2. Responsive Monster Grid */
+    .monster-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* 3. The Enemy Card */
+    .enemy-card {
+        background: #1e1e1e;
+        border: 2px solid #333;
+        border-radius: 15px;
+        padding: 25px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+    }
+
+    .enemy-card:hover {
+        border-color: #ef4444; /* Enemy Red */
+        transform: translateY(-10px);
+        box-shadow: 0 12px 24px rgba(239, 68, 68, 0.2);
+    }
+
+    .enemy-card h3 {
+        margin-top: 0;
+        color: #ef4444;
+        font-size: 1.5rem;
+    }
+
+    .stat-text {
+        font-size: 1.1rem;
+        margin: 15px 0;
+    }
+
+    /* 4. Challenge Button */
+    .challenge-btn {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 25px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+        width: 100%;
+    }
+
+    .challenge-btn:hover {
+        background-color: #ff5e88;
+        letter-spacing: 1px;
+    }
+</style>
+
+<h2>Choose your opponent, {{ hero.name }}!</h2>
+
+<div class="monster-list">
+    {% for enemy in enemies %}
+    <div class="enemy-card">
+        <h3>👹 {{ enemy.name }}</h3>
+        <p class="stat-text">
+            ❤️ HP: <strong style="color: #4ade80;">{{ enemy.health }}</strong> | 
+            ⚔️ Power: <strong>{{ enemy.attack_power }}</strong>
+        </p>
+        
+        <form action="{% url 'start_battle' hero.id enemy.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="challenge-btn">⚔️ Challenge</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="margin-top: 50px;">
+    <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">🏃 Go Back to Profile</a>
+</div>
