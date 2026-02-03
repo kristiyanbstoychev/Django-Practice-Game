@@ -5,28 +5,14 @@ from .models import Character, Quest, Item, Location, Enemy
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_POST
 
-# ===== CHARACTER LIST VIEW =====
-def character_list(request):
+def main_menu(request):
+    return render(request, 'game/main_menu.html')
+
+def characters_listing(request):
     all_characters = Character.objects.all()
-    
-    response_text = "<h1>World Heroes</h1>"
-    
-    for hero in all_characters:
-        response_text += f"<hr><strong>{hero.name}</strong> (HP: {hero.health})<br>Location: {hero.current_location}<br> <hr>Inventory: <hr>"
-
-        # Use the tether 'items' to find all items belonging to this specific hero
-        # .all() here gets every item attached to this one character
-        inventory = hero.items.all()
-        for items in inventory:
-            item_name = items.name
-            item_power = items.power
-            if inventory:
-                response_text += f"{item_name} power/quantiy: {item_power} <br>"
-            else:    
-                response_text += 'Empty backpack'
-                        
-    return HttpResponse(response_text)
-
+    # Ensure this filename is exactly correct
+    return render(request, 'game/characters_listing.html', {'characters': all_characters})
+  
 # ===== COMBAT VIEW WITH SESSION TRACKING =====
 def basic_combat(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
@@ -168,13 +154,11 @@ def travel(request, char_id, loc_id):
 
 def character_detail(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
-    hero_items = hero.items.all()
-    all_locations = Location.objects.all() # Get all possible destinations
-    return render(request, 'game/character_detail.html', {
-        'hero': hero,
-        'all_locations': all_locations,
-        'hero_items': hero_items
-    })
+    items = hero.items.all()
+
+    request.session['active_char_id'] = hero.id
+
+    return render(request, 'game/character_detail.html', {'hero': hero , 'items': items})
 
 def rename_hero(request, char_id, new_name):
     hero = get_object_or_404(Character, pk=char_id)

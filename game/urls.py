@@ -2,8 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # This says: "If the user types 'characters/', show them the character_list"
-    path('characters/', views.character_list, name='character_list'),
+    path('', views.main_menu, name='main_menu'),
+    path('characters_listing/', views.characters_listing, name='characters_listing'),
     path('quests/<int:char_id>/', views.quest_log, name='quest_log'),
     path('combat/<int:char_id>/', views.basic_combat, name='basic_combat'),
     path('levelup/<int:char_id>/', views.level_up, name='level_up'),

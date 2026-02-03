@@ -75,20 +75,20 @@
 <div class="monster-list">
     {% for enemy in enemies %}
     <div class="enemy-card">
-        <h3>👹 {{ enemy.name }}</h3>
+        <h3>{{ enemy.name }}</h3>
         <p class="stat-text">
-            ❤️ HP: <strong style="color: #4ade80;">{{ enemy.health }}</strong> | 
-            ⚔️ Power: <strong>{{ enemy.attack_power }}</strong>
+            HP: <strong style="color: #4ade80;">{{ enemy.health }}</strong> | 
+            Power: <strong>{{ enemy.attack_power }}</strong>
         </p>
         
         <form action="{% url 'start_battle' hero.id enemy.id %}" method="POST">
             {% csrf_token %}
-            <button type="submit" class="challenge-btn">⚔️ Challenge</button>
+            <button type="submit" class="challenge-btn">Challenge</button>
         </form>
     </div>
     {% endfor %}
 </div>
 
 <div style="margin-top: 50px;">
-    <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">🏃 Go Back to Profile</a>
+    <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">Go Back to Profile</a>
 </div>

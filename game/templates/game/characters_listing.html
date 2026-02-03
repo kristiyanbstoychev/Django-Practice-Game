@@ -1,0 +1,104 @@
+<style>
+    /* 1. Global Page Styling */
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center;
+        padding: 40px;
+    }
+
+    h1 {
+        color: #4a90e2;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 40px;
+    }
+
+    /* 2. The Hero Grid */
+    .char-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* 3. The Character Card */
+    .char-card {
+        background: #1e1e1e;
+        border: 2px solid #333;
+        border-radius: 15px;
+        padding: 30px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    }
+
+    .char-card:hover {
+        border-color: #4a90e2; /* Hero Blue */
+        transform: translateY(-10px);
+        box-shadow: 0 12px 24px rgba(74, 144, 226, 0.2);
+    }
+
+    .char-card h2 {
+        margin-top: 0;
+        color: #ffffff;
+        font-size: 1.8rem;
+    }
+
+    .char-card p {
+        color: #4ade80; /* Success Green for Level Info */
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+    }
+
+    /* 4. Select Button */
+    .play-btn {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-weight: bold;
+        text-decoration: none;
+        display: block;
+        transition: 0.2s;
+    }
+
+    .play-btn:hover {
+        background-color: #357abd;
+        box-shadow: 0 0 10px #4a90e2;
+    }
+
+    .empty-msg {
+        grid-column: 1 / -1;
+        font-style: italic;
+        color: #666;
+        padding: 50px;
+    }
+</style>
+
+<h1>Choose Your Hero</h1>
+
+<div class="char-grid">
+    {% for hero in characters %}
+        <div class="char-card">
+            <h2>{{ hero.name }}</h2>
+            <p>Level {{ hero.level }}</p>
+            
+            <a href="{% url 'character_detail' hero.id %}" class="play-btn">
+                Select {{ hero.name }}
+            </a>
+        </div>
+    {% empty %}
+        <div class="empty-msg">
+            <p>No heroes found. Your roster is empty.</p>
+            <a href="{% url 'create_character' %}" style="color: #4a90e2;">Create your first hero here.</a>
+        </div>
+    {% endfor %}
+</div>
+
+<div style="margin-top: 50px;">
+    <a href="{% url 'main_menu' %}" style="color: #888; text-decoration: none;">Back to Main Menu</a>
+</div>

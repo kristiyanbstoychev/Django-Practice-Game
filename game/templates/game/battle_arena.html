@@ -103,7 +103,7 @@
     <div class="arena-container">
         <div class="character-card" id="heroCard">
             <div id="heroSword" class="attack-overlay">⚔️</div>
-            <h2>🛡️ {{ hero.name }}</h2>
+            <h2>{{ hero.name }}</h2>
             <p>HP: <strong style="color: #4ade80;">{{ hero.health }}</strong></p>
             <p>Strength: <strong>{{ hero.strength }}</strong></p>
             <p>Level: {{ hero.level }}</p>
@@ -113,7 +113,7 @@
 
         <div class="enemy-card" id="enemyCard">
             <div id="enemyClaw" class="attack-overlay">🐾</div>
-            <h2>👹 {{ enemy.name }}</h2>
+            <h2>{{ enemy.name }}</h2>
             <p>HP: <strong style="color: #ef4444;">{{ enemy.health }}</strong></p>
             <p>Attack Power: <strong>{{ enemy.attack_power }}</strong></p>
         </div>
@@ -122,10 +122,10 @@
     <div style="text-align: center;">
         <form id="battleForm" action="{% url 'attack_enemy' hero.id %}" method="POST" onsubmit="runBattleAnimation(event)">
             {% csrf_token %}
-            <button type="submit" class="attack-btn">⚔️ Attack!</button>
+            <button type="submit" class="attack-btn">Attack!</button>
         </form>
         <br>
-        <a href="{% url 'character_detail' hero.id %}" style="color: #666; text-decoration: none;">🏃 Flee Battle</a>
+        <a href="{% url 'character_detail' hero.id %}" style="color: #666; text-decoration: none;">Flee Battle</a>
     </div>
 
     <script>

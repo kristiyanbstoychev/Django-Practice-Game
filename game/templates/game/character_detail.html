@@ -54,30 +54,65 @@
         transform: translateY(-5px);
         background: #252525;
     }
+    .inventory-section {
+        margin-top: 40px;
+        padding: 20px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        background: #1e1e1e;
+        border-radius: 12px;
+        border: 1px solid #333;
+    }
+    .item-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        list-style: none;
+        padding: 0;
+    }
+    .item-tag {
+        background: #333;
+        padding: 5px 15px;
+        border-radius: 20px;
+        border: 1px solid #4a90e2;
+        font-size: 0.9rem;
+    }
 </style>
 
 <div class="profile-header">
     <h1>Hero: {{ hero.name }}</h1>
     <div class="stat-container">
-        <div class="stat-box">⭐ Level: {{ hero.level }}</div>
-        <div class="stat-box">❤️ HP: {{ hero.health }}</div>
-        <div class="stat-box">✨ XP: {{ hero.xp }}</div>
+        <div class="stat-box">Level: {{ hero.level }}</div>
+        <div class="stat-box">HP: {{ hero.health }}</div>
+        <div class="stat-box">XP: {{ hero.xp }}</div>
     </div>
-    <h3>📍 Location: {{ hero.current_location.name }}</h3>
+    <div class="inventory-section">
+    <h2>Inventory</h2>
+    <div class="item-list">
+        {% for item in items %}
+            <span class="item-tag">{{ item.name }}</span>
+        {% empty %}
+            <p style="color: #666;">Inventory is empty.</p>
+        {% endfor %}
+    </div>
+    </div>
+    <h3>Location: {{ hero.current_location.name }}</h3>
 </div>
 
 <h2>Take Action</h2>
 <div class="action-grid">
     <a href="{% url 'select_enemy' hero.id %}" class="action-card" style="border-color: #ef4444;">
-        <h3>⚔️ Battle</h3>
+        <h3>Battle</h3>
         <p>Find an enemy to fight</p>
     </a>
     <a href="{% url 'rest' hero.id %}" class="action-card">
-        <h3>💤 Rest</h3>
+        <h3>Rest</h3>
         <p>Recover your health</p>
     </a>
     <a href="{% url 'quest_log' hero.id %}" class="action-card">
-        <h3>📜 Quests</h3>
+        <h3>Quests</h3>
         <p>View your progress</p>
     </a>
 </div>
