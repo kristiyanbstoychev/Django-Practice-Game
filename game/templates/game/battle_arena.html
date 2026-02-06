@@ -79,6 +79,7 @@
             <h1 style="color: #4ade80;">VICTORY!</h1>
             <p>You defeated {{ victory.enemy_name }}</p>
             <p style="color: #f1c40f;">+ {{ victory.xp_gained }} XP</p>
+            <p style="color: #f1c40f;">+ {{ victory.gold_amount_reward }} gold earned</p>
             <a href="{% url 'character_detail' hero.id %}" style="color: white; background: #4a90e2; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Return to Character</a>
         </div>
     </div>

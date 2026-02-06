@@ -1,89 +1,110 @@
-<style>
-    body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px; }
-    
-    .quest-container { max-width: 900px; margin: 0 auto; }
-    
-    .quest-section {
-        background: #1e1e1e;
-        border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 30px;
-        border: 1px solid #333;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quest Log - {{ hero.name }}</title>
+    <style>
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px; }
+        .quest-container { max-width: 900px; margin: 0 auto; }
+        .quest-section { background: #1e1e1e; border-radius: 15px; padding: 25px; margin-bottom: 30px; border: 1px solid #333; }
+        
+        .quest-card {
+            background: #252525; border-left: 4px solid #4a90e2;
+            padding: 15px; margin: 15px 0; display: flex;
+            justify-content: space-between; align-items: center; border-radius: 5px;
+        }
+
+        .xp-tag { background: #1e3a2f; color: #4ade80; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; border: 1px solid #4ade80; }
+        .accept-btn { background: #4ade80; color: #121212; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .refresh-btn { background: #333; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; border: 1px solid #444; font-size: 0.8rem; }
+        
+        /* Overlays */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #4a90e2; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .enemy-section { margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
+    .enemy-list { display: flex; flex-direction: column; gap: 10px; }
+    .enemy-row {
+        background: #252525; padding: 15px; border-radius: 8px;
+        display: flex; justify-content: space-between; align-items: center;
+        border: 1px solid #444;
     }
-
-    .quest-card {
-        background: #252525;
-        border-left: 4px solid #4a90e2; /* Default blue */
-        padding: 15px;
-        margin: 10px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 5px;
+    .battle-btn {
+        background: #ef4444; color: white; border: none;
+        padding: 8px 15px; border-radius: 4px; font-weight: bold;
+        cursor: pointer; transition: 0.2s;
     }
-
-    .active-border { border-left-color: #f1c40f; } /* Yellow for active */
-    .complete-border { border-left-color: #4ade80; opacity: 0.7; } /* Green for done */
-
-    .accept-btn {
-        background: #4ade80;
-        color: #121212;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 5px;
-        font-weight: bold;
-        cursor: pointer;
-        text-decoration: none;
+    .battle-btn:hover { background: #b91c1c; transform: scale(1.05); }
+    /* Ensure your spinner CSS is present */
+    .spinner { 
+        width: 60px; height: 60px; border: 6px solid #333; 
+        border-top: 6px solid #4a90e2; border-radius: 50%; 
+        animation: spin 1s linear infinite; 
     }
-
-    .accept-btn:hover { background: #32b866; transform: scale(1.05); }
-    
-    h2 { color: #4a90e2; border-bottom: 1px solid #333; padding-bottom: 10px; }
-</style>
-
-<div class="quest-container">
-    <h1>{{ hero.name }}'s Quest Log</h1>
-
-    <div class="quest-section">
-        <h2>Available Quests</h2>
-        {% for q in available_quests %}
-            <div class="quest-card">
-                <div>
-                    <strong>{{ q.title }}</strong><br>
-                    <small style="color: #888;">Reward: {{ q.reward_xp }} XP</small>
-                </div>
-                <form action="{% url 'accept_quest' hero.id q.id %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="accept-btn">Accept Quest</button>
-                </form>
-            </div>
-        {% empty %}
-            <p>No new quests available in this area.</p>
-        {% endfor %}
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }}
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column; justify-content: center; align-items: center;">
+        <div class="spinner"></div>
+        <h2 style="color: #4a90e2; margin-top: 20px;">Enlisting for the Quest...</h2>
+        <p>Scouting targets and marking enemy locations.</p>
     </div>
 
-    <div class="quest-section">
-        <h2>Active Tasks</h2>
-        {% for q in active_quests %}
-            <div class="quest-card active-border">
-                <span> 
-                    {{ q.title }}</span>
-                <span style="color: #f1c40f; font-size: 0.8rem;">IN PROGRESS</span>
-            </div>
-        {% empty %}
-            <p>Your log is clear. Find a quest!</p>
-        {% endfor %}
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <h2 style="color: #4a90e2; margin-top: 20px;">Consulting the Adventurers' Guild...</h2>
+        <p>Drafting new contracts for Level {{ hero.level }}...</p>
     </div>
 
-    <div class="quest-section">
-        <h2>Completed</h2>
-        {% for q in completed_quests %}
-            <div class="quest-card complete-border">
-                <span style="text-decoration: line-through;">{{ q.title }}</span>
-                <span style="color: #4ade80;">FINISHED</span>
-            </div>
-        {% endfor %}
-    </div>
+    <div class="quest-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>{{ hero.name }}'s Quest Log</h1>
+            <a href="{% url 'refresh_quests' hero.id %}" class="refresh-btn" onclick="showLoader()">🔄 Refresh Board</a>
+        </div>
 
-    <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">Return to Profile</a>
+        <div class="quest-section">
+    <h2>Available Quests</h2>
+    {% for q in available_quests %}
+        <div class="quest-card">
+            <div style="text-align: left;">
+                <strong style="font-size: 1.1rem; color: #4a90e2;">{{ q.title }}</strong>
+                <p style="margin: 5px 0; color: #bbb; font-style: italic;">"{{ q.description }}"</p>
+                <span class="xp-tag">+{{ q.xp_reward }} XP</span>
+            </div>
+            <form action="{% url 'assign_quest' hero.id q.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="accept-btn" onclick="showLoader()">ACCEPT</button>
+            </form>
+        </div>
+    {% endfor %}
 </div>
+        <div class="quest-section">
+            <h2>Active Tasks</h2>
+            {% for q in active_quests %}
+                <div class="quest-card" style="border-left-color: #f1c40f;">
+                    <div style="text-align: left;">
+                        <strong>{{ q.title }}</strong>
+                        <p style="font-size: 0.8rem; color: #888;">{{ q.description }}</p>
+                    </div>
+                    <span style="color: #f1c40f; font-weight: bold;">IN PROGRESS</span>
+                </div>
+            {% empty %}
+                <p>No active tasks. Accept a quest to begin.</p>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">Return to Profile</a>
+    </div>
+
+    <script>
+        function showLoader() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

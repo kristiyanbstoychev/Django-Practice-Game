@@ -5,6 +5,8 @@ from .models import Character, Quest, Item, Location, Enemy
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_POST
 import requests
+from random import randrange
+import json, re 
 
 def main_menu(request):
     return render(request, 'game/main_menu.html')
@@ -67,34 +69,94 @@ def rest(request, char_id):
     
     return redirect('character_detail', char_id=hero.id)
 
-# game/views.py
 def quest_log(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
-    
     active_quests = Quest.objects.filter(assigned_to=hero, is_completed=False)
     completed_quests = Quest.objects.filter(assigned_to=hero, is_completed=True)
-    
-    # We also need available quests that haven't been assigned yet
-    # Assuming 'assigned_to' is null for unaccepted quests
     available_quests = Quest.objects.filter(assigned_to__isnull=True)
 
-    context = {
+    # Auto-generate if board is empty
+    if not available_quests.exists():
+        return refresh_quests(request, char_id)
+
+    return render(request, 'game/quest_log.html', {
         'hero': hero,
         'active_quests': active_quests,
         'completed_quests': completed_quests,
         'available_quests': available_quests,
-    }
-    
-    return render(request, 'game/quest_log.html', context)
+    })
 
-# ===== ASSIGN QUEST VIEW =====
+def refresh_quests(request, char_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    Quest.objects.filter(assigned_to__isnull=True).delete()
+    
+    try:
+        response = requests.post(
+            "http://localhost:8001/generate-quests/", 
+            json={"player_level": hero.level},
+            timeout=60
+        )
+        if response.status_code == 200:
+            ai_raw = response.json().get("response", "[]")
+            # Regex to ensure we only get the JSON array
+            json_match = re.search(r'\[.*\]', ai_raw, re.DOTALL)
+            if json_match:
+                quests = json.loads(json_match.group())
+                for q in quests:
+                    Quest.objects.create(
+                        title=q.get('title', 'Unknown Task'),
+                        description=q.get('description', 'No description provided.'),
+                        xp_reward=int(q.get('xp_reward', 50)),
+                        assigned_to=None
+                    )
+    except Exception as e:
+        print(f"Quest Generation Failed: {e}")
+        
+    return redirect('quest_log', char_id=hero.id)
+
 def assign_quest(request, char_id, quest_id):
     hero = get_object_or_404(Character, pk=char_id)
     quest = get_object_or_404(Quest, pk=quest_id)
     
-    quest.assigned_to = hero
+    if request.method == "POST":
+        quest.assigned_to = hero
+        quest.save()
+        
+        # We generate 3 separate enemies to ensure they are distinct DB records
+        for _ in range(3):
+            try:
+                # Re-using the logic: Passing quest title as the 'context'
+                response = requests.post(
+                    "http://localhost:8001/generate-enemy/", 
+                    json={
+                        "player_level": hero.level,
+                        "context": f"Quest: {quest.title}" # Guide the AI
+                    },
+                    timeout=90
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    Enemy.objects.create(
+                        name=data['name'],
+                        health=int(data['health']),
+                        attack_power=int(data['attack_power']),
+                        xp_reward=int(data['xp_reward']),
+                        quest=quest # Crucial: Link to the quest
+                    )
+            except Exception as e:
+                print(f"Failed to generate quest enemy: {e}")
+
+        return redirect('quest_detail', char_id=hero.id, quest_id=quest.id)
     
-    return HttpResponse(f"Quest '{quest.title}' assigned to {hero.name}!")
+def quest_detail(request, char_id, quest_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    quest = get_object_or_404(Quest, pk=quest_id)
+    
+    return render(request, 'game/quest_detail.html', {
+        'hero': hero,
+        'quest': quest
+    })
 
 # ===== QUEST COMPLETION WITH REQUIREMENTS =====
 def complete_quest(request, quest_id):
@@ -200,14 +262,18 @@ def attack_enemy(request, char_id):
         # 2. Check for Victory
         if enemy.health <= 0:
             hero.xp += enemy.xp_reward
+            hero.gold_amount += randrange(5, 20)
             request.session['last_victory'] = {
                 'enemy_name': enemy.name,
-                'xp_gained': enemy.xp_reward
+                'xp_gained': enemy.xp_reward,
+                'gold_amount_reward': hero.gold_amount
             }
             # Handle Level Up
             if hero.xp >= 100:
                 hero.level += 1
                 hero.xp -= 100
+                hero.strength += 30
+                hero.health += 15
             
             hero.current_enemy = None # Clear the fight
             hero.save()
@@ -223,7 +289,7 @@ def attack_enemy(request, char_id):
             hero.health = 0
             hero.current_enemy = None
             hero.save()
-            return redirect('character_list') # Or a game over page
+            return redirect('characters_listing') # Or a game over page
 
         # SUCCESS: Stay in the arena with the current enemy
         return redirect('battle_arena', char_id=hero.id, enemy_id=enemy.id)
@@ -276,7 +342,7 @@ def generate_new_enemy(request, char_id):
     
     try:
         print(f"Requesting AI for Hero {hero.id}...")
-        response = requests.post(ai_service_url, json={"player_level": hero.level, "environment": "Arena"}, timeout=10)
+        response = requests.post(ai_service_url, json={"player_level": hero.level, "environment": "Arena"}, timeout=90)
         data = response.json()
         
         # Create the enemy
