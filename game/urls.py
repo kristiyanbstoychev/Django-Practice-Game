@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.main_menu, name='main_menu'),
     path('characters_listing/', views.characters_listing, name='characters_listing'),
+    path('create/', views.create_character, name='create_character'),
     path('quests/<int:char_id>/', views.quest_log, name='quest_log'),
     path('combat/<int:char_id>/', views.basic_combat, name='basic_combat'),
     path('levelup/<int:char_id>/', views.level_up, name='level_up'),

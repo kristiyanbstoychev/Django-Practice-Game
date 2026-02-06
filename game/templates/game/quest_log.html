@@ -1,0 +1,89 @@
+<style>
+    body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px; }
+    
+    .quest-container { max-width: 900px; margin: 0 auto; }
+    
+    .quest-section {
+        background: #1e1e1e;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid #333;
+    }
+
+    .quest-card {
+        background: #252525;
+        border-left: 4px solid #4a90e2; /* Default blue */
+        padding: 15px;
+        margin: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 5px;
+    }
+
+    .active-border { border-left-color: #f1c40f; } /* Yellow for active */
+    .complete-border { border-left-color: #4ade80; opacity: 0.7; } /* Green for done */
+
+    .accept-btn {
+        background: #4ade80;
+        color: #121212;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .accept-btn:hover { background: #32b866; transform: scale(1.05); }
+    
+    h2 { color: #4a90e2; border-bottom: 1px solid #333; padding-bottom: 10px; }
+</style>
+
+<div class="quest-container">
+    <h1>{{ hero.name }}'s Quest Log</h1>
+
+    <div class="quest-section">
+        <h2>Available Quests</h2>
+        {% for q in available_quests %}
+            <div class="quest-card">
+                <div>
+                    <strong>{{ q.title }}</strong><br>
+                    <small style="color: #888;">Reward: {{ q.reward_xp }} XP</small>
+                </div>
+                <form action="{% url 'accept_quest' hero.id q.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="accept-btn">Accept Quest</button>
+                </form>
+            </div>
+        {% empty %}
+            <p>No new quests available in this area.</p>
+        {% endfor %}
+    </div>
+
+    <div class="quest-section">
+        <h2>Active Tasks</h2>
+        {% for q in active_quests %}
+            <div class="quest-card active-border">
+                <span> 
+                    {{ q.title }}</span>
+                <span style="color: #f1c40f; font-size: 0.8rem;">IN PROGRESS</span>
+            </div>
+        {% empty %}
+            <p>Your log is clear. Find a quest!</p>
+        {% endfor %}
+    </div>
+
+    <div class="quest-section">
+        <h2>Completed</h2>
+        {% for q in completed_quests %}
+            <div class="quest-card complete-border">
+                <span style="text-decoration: line-through;">{{ q.title }}</span>
+                <span style="color: #4ade80;">FINISHED</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">Return to Profile</a>
+</div>

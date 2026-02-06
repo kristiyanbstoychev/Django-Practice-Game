@@ -88,7 +88,7 @@
             <p>Level {{ hero.level }}</p>
             
             <a href="{% url 'character_detail' hero.id %}" class="play-btn">
-                Select {{ hero.name }}
+                PLAY
             </a>
         </div>
     {% empty %}
@@ -98,7 +98,11 @@
         </div>
     {% endfor %}
 </div>
-
+<div style="margin-bottom: 40px; margin-top: 40px;">
+    <a href="{% url 'create_character' %}" class="play-btn" style="display: inline-block; background-color: #4ade80; border-color: #4ade80; padding: 15px 40px;">
+        ➕ Create New Hero
+    </a>
+</div>
 <div style="margin-top: 50px;">
     <a href="{% url 'main_menu' %}" style="color: #888; text-decoration: none;">Back to Main Menu</a>
 </div>
