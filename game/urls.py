@@ -18,5 +18,6 @@ urlpatterns = [
     path('battle/start/<int:char_id>/<int:enemy_id>/', views.start_battle, name='start_battle'),
     path('select_enemy/<int:char_id>/', views.select_enemy, name='select_enemy'),
     path('attack_enemy/<int:char_id>/', views.attack_enemy, name='attack_enemy'),
-    path('arena/<int:char_id>/', views.battle_arena, name='battle_arena'),
+    path('generate-enemy/<int:char_id>/', views.generate_new_enemy, name='generate_new_enemy'),
+    path('battle/<int:char_id>/<int:enemy_id>/', views.battle_arena, name='battle_arena'),
 ]

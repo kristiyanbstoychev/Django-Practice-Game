@@ -4,6 +4,7 @@ from .models import Character, Quest, Item, Location, Enemy
 # 'get_object_or_404' to help us find a specific character or show an error if they don't exist
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_POST
+import requests
 
 def main_menu(request):
     return render(request, 'game/main_menu.html')
@@ -187,35 +188,49 @@ def start_battle(request, char_id, enemy_id):
 
 def attack_enemy(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
+    
+    # Use the hero's current_enemy relationship
     enemy = hero.current_enemy
 
     if request.method == "POST" and enemy:
-        # 1. Hero deals damage
-        enemy.health -= hero.strength # Assuming you have a 'strength' field
+        # 1. Hero Attacks
+        enemy.health -= getattr(hero, 'strength', 10)
         enemy.save()
 
-        # 2. Check if enemy is still alive
+        # 2. Check for Victory
         if enemy.health <= 0:
-           if enemy.health <= 0:
-            # 1. Award XP
             hero.xp += enemy.xp_reward
-            enemy.health = 100
-        # 2. Check for Level Up
+            request.session['last_victory'] = {
+                'enemy_name': enemy.name,
+                'xp_gained': enemy.xp_reward
+            }
+            # Handle Level Up
             if hero.xp >= 100:
                 hero.level += 1
-                hero.health += 20
-                hero.xp = 0 # Reset or carry over XP
-                # You could also add a message here!
-            # 3. Cleanup
-            hero.current_enemy = None
+                hero.xp -= 100
+            
+            hero.current_enemy = None # Clear the fight
             hero.save()
-            return redirect('character_detail', char_id=hero.id)
-        
-        # 3. Enemy Retaliation (Only happens if enemy.health > 0)
+            enemy.delete() # Cleanup the AI monster
+            return redirect('battle_arena', char_id=hero.id, enemy_id=0)
+
+        # 3. Enemy Attacks Back (Only if still alive)
         hero.health -= enemy.attack_power
         hero.save()
 
-    return redirect('battle_arena', char_id=hero.id)
+        # 4. Check for Hero Death
+        if hero.health <= 0:
+            hero.health = 0
+            hero.current_enemy = None
+            hero.save()
+            return redirect('character_list') # Or a game over page
+
+        # SUCCESS: Stay in the arena with the current enemy
+        return redirect('battle_arena', char_id=hero.id, enemy_id=enemy.id)
+
+    # FAILURE: If the code reaches here, 'enemy' was None.
+    # We redirect back to the arena which will handle the "no enemy" state.
+    return redirect('battle_arena', char_id=hero.id, enemy_id=0)
 
 def select_enemy(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
@@ -227,28 +242,57 @@ def select_enemy(request, char_id):
         'enemies': available_enemies
     })
 
-def battle_arena(request, char_id):
+# game/views.py
+def battle_arena(request, char_id, enemy_id):
     hero = get_object_or_404(Character, pk=char_id)
-    # Get the enemy linked to this hero
-    enemy = hero.current_enemy 
-    
-    if not enemy:
-        # If no enemy is assigned, send them back to pick one
-        return redirect('select_enemy', char_id=hero.id)
+    victory_data = None
+    enemy = None
+
+    if enemy_id == 0:
+        # Check if we just won
+        victory_data = request.session.pop('last_victory', None)
+        # If there's no victory data and no enemy, the page will look empty
+    else:
+        # Fetch the specific enemy
+        enemy = get_object_or_404(Enemy, pk=enemy_id)
+        
+        # Sync the hero's current_enemy field just in case
+        if hero.current_enemy != enemy:
+            hero.current_enemy = enemy
+            hero.save()
 
     return render(request, 'game/battle_arena.html', {
         'hero': hero,
-        'enemy': enemy
+        'enemy': enemy,
+        'victory': victory_data
     })
 
-# game/views.py
-def accept_quest(request, char_id, quest_id):
-    if request.method == "POST":
-        hero = get_object_or_404(Character, pk=char_id)
-        quest = get_object_or_404(Quest, pk=quest_id)
+def generate_new_enemy(request, char_id):
+    if request.method != "POST":
+        return redirect('character_detail', char_id=char_id)
+
+    hero = get_object_or_404(Character, pk=char_id)
+    ai_service_url = "http://localhost:8001/generate-enemy/"
+    
+    try:
+        print(f"Requesting AI for Hero {hero.id}...")
+        response = requests.post(ai_service_url, json={"player_level": hero.level, "environment": "Arena"}, timeout=10)
+        data = response.json()
         
-        # Assign the quest to the hero
-        quest.assigned_to = hero
-        quest.save()
+        # Create the enemy
+        new_enemy = Enemy.objects.create(
+            name=data['name'],
+            health=int(data['health']),
+            attack_power=int(data['attack_power']),
+            xp_reward=int(data.get('xp_reward', 10))
+        )
         
-    return redirect('quest_log', char_id=char_id)
+        print(f"Enemy Created: {new_enemy.name} (ID: {new_enemy.id})")
+        print(f"Attempting redirect to battle_arena with char_id={hero.id} and enemy_id={new_enemy.id}")
+
+        # CRITICAL: Ensure 'battle_arena' matches the 'name' in urls.py exactly
+        return redirect('battle_arena', char_id=hero.id, enemy_id=new_enemy.id)
+
+    except Exception as e:
+        print(f"ERROR OCCURRED: {e}")
+        return redirect('character_detail', char_id=char_id)
