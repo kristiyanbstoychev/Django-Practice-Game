@@ -6,6 +6,7 @@ urlpatterns = [
     path('characters_listing/', views.characters_listing, name='characters_listing'),
     path('create/', views.create_character, name='create_character'),
     path('quests/<int:char_id>/', views.quest_log, name='quest_log'),
+    path('refresh_quests/<int:char_id>/', views.refresh_quests, name='refresh_quests'),
     path('combat/<int:char_id>/', views.basic_combat, name='basic_combat'),
     path('levelup/<int:char_id>/', views.level_up, name='level_up'),
     path('rest/<int:char_id>/', views.rest, name='rest'),
@@ -18,5 +19,7 @@ urlpatterns = [
     path('battle/start/<int:char_id>/<int:enemy_id>/', views.start_battle, name='start_battle'),
     path('select_enemy/<int:char_id>/', views.select_enemy, name='select_enemy'),
     path('attack_enemy/<int:char_id>/', views.attack_enemy, name='attack_enemy'),
-    path('arena/<int:char_id>/', views.battle_arena, name='battle_arena'),
+    path('generate-enemy/<int:char_id>/', views.generate_new_enemy, name='generate_new_enemy'),
+    path('battle/<int:char_id>/<int:enemy_id>/', views.battle_arena, name='battle_arena'),
+    path('quest-detail/<int:char_id>/<int:quest_id>/', views.quest_detail, name='quest_detail'),
 ]

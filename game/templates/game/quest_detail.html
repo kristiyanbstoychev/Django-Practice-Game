@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ quest.title }} - Details</title>
+    <style>
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px; }
+        
+        .detail-card {
+            max-width: 600px; margin: 40px auto;
+            background: #1e1e1e; padding: 40px;
+            border-radius: 20px; border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .quest-header { border-bottom: 2px solid #4a90e2; padding-bottom: 20px; margin-bottom: 20px; }
+        .quest-title { color: #4a90e2; font-size: 2.2rem; margin: 0; }
+        
+        .description-box {
+            background: #252525; padding: 20px;
+            border-radius: 12px; font-size: 1.1rem;
+            line-height: 1.6; margin: 25px 0;
+            color: #ccc; font-style: italic;
+        }
+
+        .reward-badge {
+            display: inline-block; background: #1e3a2f; color: #4ade80;
+            padding: 10px 20px; border-radius: 50px;
+            font-weight: bold; border: 1px solid #4ade80;
+        }
+
+        .back-link {
+            display: inline-block; margin-top: 30px;
+            color: #888; text-decoration: none; font-size: 0.9rem;
+        }
+        .back-link:hover { color: #4a90e2; }
+
+        .btn-action {
+            display: block; width: 100%; padding: 15px;
+            margin-top: 20px; background: #4a90e2;
+            color: white; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; text-decoration: none;
+        }
+        .enemy-section { margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
+    .enemy-list { display: flex; flex-direction: column; gap: 10px; }
+    .enemy-row {
+        background: #252525; padding: 15px; border-radius: 8px;
+        display: flex; justify-content: space-between; align-items: center;
+        border: 1px solid #444;
+    }
+    .battle-btn {
+        background: #ef4444; color: white; border: none;
+        padding: 8px 15px; border-radius: 4px; font-weight: bold;
+        cursor: pointer; transition: 0.2s;
+    }
+    .battle-btn:hover { background: #b91c1c; transform: scale(1.05); }  
+    </style>
+</head>
+<body>
+
+    <div class="detail-card">
+        <div class="quest-header">
+            <h1 class="quest-title">{{ quest.title }}</h1>
+        </div>
+
+        <div class="description-box">
+            "{{ quest.description }}"
+        </div>
+
+        <div style="margin: 20px 0;">
+            <span class="reward-badge">Reward: {{ quest.xp_reward }} XP</span>
+        </div>
+        <div class="enemy-section">
+    <h3>Quest Targets</h3>
+    <div class="enemy-list">
+        {% for enemy in quest.enemies.all %}
+            <div class="enemy-row">
+                <div style="text-align: left;">
+                    <strong style="color: #ef4444;">{{ enemy.name }}</strong>
+                    <br>
+                    <small style="color: #888;">HP: {{ enemy.health }} | ATK: {{ enemy.attack_power }}</small>
+                </div>
+                <form action="{% url 'battle_arena' hero.id enemy.id %}" method="GET">
+                    <button type="submit" class="battle-btn">BATTLE</button>
+                </form>
+            </div>
+        {% empty %}
+            <p style="color: #666;">No enemies found for this quest yet.</p>
+        {% endfor %}
+    </div>
+</div>
+        <p style="color: #666; font-size: 0.8rem;">Status: Accepted by {{ hero.name }}</p>
+
+        <a href="{% url 'quest_log' hero.id %}" class="btn-action">Return to Quest Log</a>
+        <a href="{% url 'character_detail' hero.id %}" class="back-link">← Back to Profile</a>
+    </div>
+
+</body>
+</html>

@@ -68,27 +68,67 @@
         background-color: #ff5e88;
         letter-spacing: 1px;
     }
+
+    /* Spinner Animation */
+.spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 3px solid #4a90e2;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Hide element class */
+.hidden {
+    display: none !important;
+}
 </style>
 
 <h2>Choose your opponent, {{ hero.name }}!</h2>
 
 <div class="monster-list">
+<div class="enemy-card" style="border-style: dashed; border-color: #888;">
+    <h3 style="color: #4a90e2;">🔮 Summon Monster</h3>
+    <p>Use AI to find a new foe.</p>
+    
+    <form id="gen-form" action="{% url 'generate_new_enemy' hero.id %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" id="gen-btn" class="challenge-btn" style="background: #2a2a2a; border: 1px solid #4a90e2;">
+            <span id="btn-text">Generate Enemy</span>
+            <div id="btn-spinner" class="spinner hidden"></div>
+        </button>
+    </form>
+</div>
+
     {% for enemy in enemies %}
-    <div class="enemy-card">
-        <h3>{{ enemy.name }}</h3>
-        <p class="stat-text">
-            HP: <strong style="color: #4ade80;">{{ enemy.health }}</strong> | 
-            Power: <strong>{{ enemy.attack_power }}</strong>
-        </p>
-        
-        <form action="{% url 'start_battle' hero.id enemy.id %}" method="POST">
-            {% csrf_token %}
-            <button type="submit" class="challenge-btn">Challenge</button>
-        </form>
-    </div>
-    {% endfor %}
+        {% endfor %}
 </div>
 
 <div style="margin-top: 50px;">
     <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">Go Back to Profile</a>
 </div>
+
+<script>
+    document.getElementById('gen-form').onsubmit = function() {
+        // Disable button to prevent double-clicks
+        const btn = document.getElementById('gen-btn');
+        const text = document.getElementById('btn-text');
+        const spinner = document.getElementById('btn-spinner');
+
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.7';
+        
+        // Swap text for spinner
+        text.innerText = "Summoning...";
+        spinner.classList.remove('hidden');
+    };
+</script>

@@ -17,6 +17,16 @@ class Enemy(models.Model):
     health = models.IntegerField(default=50)
     attack_power = models.IntegerField(default=10)
     xp_reward = models.IntegerField(default=20)
+    is_defeated = models.BooleanField(default=False)
+
+# This allows the quest_detail page to find its enemies
+    quest = models.ForeignKey(
+        'Quest', 
+        on_delete=models.CASCADE, 
+        related_name='enemies', 
+        null=True, 
+        blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -78,15 +88,21 @@ class Item(models.Model):
 class Quest(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    is_completed = models.BooleanField(default=False) # A simple Yes/No switch
+    xp_reward = models.IntegerField(default=20)
+    is_completed = models.BooleanField(default=False)
     
-    # Link to a specific Character
+    # Updated to allow null (database level) and blank (form level)
     assigned_to = models.ForeignKey(
         Character, 
         on_delete=models.CASCADE, 
-        related_name="quests"
+        related_name="quests",
+        null=True,   # Allows the database to store a NULL value
+        blank=True   # Allows the Django admin/forms to leave this empty
     )
 
     def __str__(self):
-        return f"{self.title} - {'Done' if self.is_completed else 'Active'}"
+        status = "Done" if self.is_completed else "Active"
+        # Handle the case where the quest isn't assigned yet
+        owner = self.assigned_to.name if self.assigned_to else "Unassigned"
+        return f"{self.title} ({owner}) - {status}"
     
