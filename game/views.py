@@ -66,32 +66,25 @@ def rest(request, char_id):
     
     return redirect('character_detail', char_id=hero.id)
 
-# ===== QUEST LOG VIEW =====
+# game/views.py
 def quest_log(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
     
-    # 1. Filter for quests that belong to THIS hero and are NOT done
-    # 'assigned_to=hero' checks the owner
-    # 'is_completed=False' checks the status
     active_quests = Quest.objects.filter(assigned_to=hero, is_completed=False)
-    
-    # 2. Filter for quests that ARE done
     completed_quests = Quest.objects.filter(assigned_to=hero, is_completed=True)
     
-    # 3. Build the display
-    response = f"<h1>{hero.name}'s Quest Log</h1>"
+    # We also need available quests that haven't been assigned yet
+    # Assuming 'assigned_to' is null for unaccepted quests
+    available_quests = Quest.objects.filter(assigned_to__isnull=True)
+
+    context = {
+        'hero': hero,
+        'active_quests': active_quests,
+        'completed_quests': completed_quests,
+        'available_quests': available_quests,
+    }
     
-    response += "<h3>Active Quests:</h3><ul>"
-    for q in active_quests:
-        response += f"<li>{q.title} (ID: {q.id})</li>"
-    response += "</ul>"
-    
-    response += "<h3>Completed Quests:</h3><ul>"
-    for q in completed_quests:
-        response += f"<li>{q.title}</li>"
-    response += "</ul>"
-    
-    return HttpResponse(response)
+    return render(request, 'game/quest_log.html', context)
 
 # ===== ASSIGN QUEST VIEW =====
 def assign_quest(request, char_id, quest_id):
@@ -151,6 +144,16 @@ def travel(request, char_id, loc_id):
     hero.save()
     
     return redirect('character_detail', char_id=hero.id)
+
+def create_character(request):
+    if request.method == "POST":
+        name = request.POST.get('name')
+        if name:
+            # Create the character and save to DB
+            Character.objects.create(name=name)
+            return redirect('characters_listing')
+    
+    return render(request, 'game/create_character.html')
 
 def character_detail(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
@@ -237,3 +240,15 @@ def battle_arena(request, char_id):
         'hero': hero,
         'enemy': enemy
     })
+
+# game/views.py
+def accept_quest(request, char_id, quest_id):
+    if request.method == "POST":
+        hero = get_object_or_404(Character, pk=char_id)
+        quest = get_object_or_404(Quest, pk=quest_id)
+        
+        # Assign the quest to the hero
+        quest.assigned_to = hero
+        quest.save()
+        
+    return redirect('quest_log', char_id=char_id)

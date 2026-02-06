@@ -1,0 +1,18 @@
+<style>
+    body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 50px; }
+    .form-container { background: #1e1e1e; border: 2px solid #4a90e2; padding: 40px; border-radius: 15px; display: inline-block; width: 350px; }
+    input[type="text"] { background: #333; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; width: 80%; margin-bottom: 20px; font-size: 1rem; }
+    .submit-btn { background-color: #4a90e2; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+    .submit-btn:hover { background-color: #357abd; box-shadow: 0 0 15px #4a90e2; }
+</style>
+
+<div class="form-container">
+    <h1>Create Hero</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Enter Hero Name" required autofocus>
+        <button type="submit" class="submit-btn">CREATE HERO</button>
+    </form>
+    <br>
+    <a href="{% url 'characters_listing' %}" style="color: #888; text-decoration: none;">Back to List</a>
+</div>
