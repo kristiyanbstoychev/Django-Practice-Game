@@ -38,6 +38,8 @@ class Character(models.Model):
     
     # This stores health as a whole number - starts at 100
     health = models.IntegerField(default=100)
+
+    max_health = models.IntegerField(default=100)
     
     mana = models.IntegerField(default=50)
 

@@ -46,6 +46,19 @@
         animation: spin 1s linear infinite; 
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }}
+    .continue-btn {
+        background: #f1c40f;
+        color: #121212;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+    .continue-btn:hover {
+        background: #d4ac0d;
+        transform: scale(1.05);
+    }
     </style>
 </head>
 <body>
@@ -83,20 +96,25 @@
         </div>
     {% endfor %}
 </div>
-        <div class="quest-section">
-            <h2>Active Tasks</h2>
-            {% for q in active_quests %}
-                <div class="quest-card" style="border-left-color: #f1c40f;">
-                    <div style="text-align: left;">
-                        <strong>{{ q.title }}</strong>
-                        <p style="font-size: 0.8rem; color: #888;">{{ q.description }}</p>
-                    </div>
-                    <span style="color: #f1c40f; font-weight: bold;">IN PROGRESS</span>
-                </div>
-            {% empty %}
-                <p>No active tasks. Accept a quest to begin.</p>
-            {% endfor %}
+<div class="quest-section">
+    <h2>Active Tasks</h2>
+    {% for q in active_quests %}
+        <div class="quest-card" style="border-left-color: #f1c40f;">
+            <div style="text-align: left;">
+                <strong style="color: #f1c40f;">{{ q.title }}</strong>
+                <p style="font-size: 0.8rem; color: #888; margin: 5px 0;">{{ q.description }}</p>
+                
+                <small style="color: #aaa;">
+                    Targets: {{ q.enemies.all|dictsort:"is_defeated"|length }} monsters remaining
+                </small>
+            </div>
+            
+            <a href="{% url 'quest_detail' hero.id q.id %}" class="continue-btn">CONTINUE</a>
         </div>
+    {% empty %}
+        <p>No active tasks. Accept a quest to begin.</p>
+    {% endfor %}
+</div>
 
         <a href="{% url 'character_detail' hero.id %}" style="color: #888; text-decoration: none;">Return to Profile</a>
     </div>
