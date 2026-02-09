@@ -92,6 +92,7 @@
                 <div class="health-bar-fill hero-hp" style="width: {{ hero.health|default:0 }}%;"></div>
             </div>
             <p>HP: {{ hero.health }}</p>
+            <p>Power: {{ hero.strength }}</p>
         </div>
 
         <h1 style="color: #444;">VS</h1>
@@ -103,6 +104,8 @@
                 <div class="health-bar-fill enemy-hp" style="width: {{ enemy.health|default:0 }}%;"></div>
             </div>
             <p>HP: {{ enemy.health }}</p>
+            <p>Power: {{ enemy.attack_power }}</p>
+            <p>XP Reward: {{ enemy.xp_reward }}</p>
         </div>
         {% endif %}
     </div>

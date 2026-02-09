@@ -25,12 +25,14 @@ def clean_json(text):
 @app.post("/generate-enemy/")
 def generate_enemy(req: dict):
     level = req.get('player_level', 1)
+    health = req.get('player_health', 100)
+    power = req.get('player_strength', 50)
     context = req.get('context', 'a dark forest')
     
     prompt = (
         "You are a Game Master for an RPG. Create a new enemy. "
         f"The context is: {context}. "
-        "Return ONLY a JSON object with this exact keys, no additional text : name, health(integer in the range 50 - 250), attack_power(integer in the range 15-25), xp_reward(integer in range 10-60)"
+        f"Return ONLY a JSON object with this exact keys, no additional text : name, health({health * 1.5}), level({level}) attack_power({power * 0.4}), xp_reward({power * 0.2})"
     )
 
     print(f"--- PROMPT SENT TO OLLAMA ---\n{prompt}")
