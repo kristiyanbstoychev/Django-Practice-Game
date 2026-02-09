@@ -208,23 +208,6 @@ def complete_quest(request, char_id, quest_id):
 
     return redirect('quest_log', char_id=hero.id)
 
-    # ===== BUY ITEM VIEW =====
-def buy_item(request, char_id, item_id):
-    # 1. Find the Hero and the Item
-    hero = get_object_or_404(Character, pk=char_id)
-    item = get_object_or_404(Item, pk=item_id)
-    
-    # 2. Check if the item actually belongs to a Merchant (or someone else)
-    old_owner_name = item.owner.name
-    
-    # 3. Change the owner tether to our Hero
-    item.owner = hero
-    
-    # 4. Save the change to the database
-    item.save()
-    
-    return HttpResponse(f"{hero.name} bought {item.name} from {old_owner_name}!")
-
 # ===== TRAVEL VIEW =====
 def travel(request, char_id, loc_id):
     # 1. Fetch the hero and the destination
@@ -249,11 +232,24 @@ def create_character(request):
 
 def character_detail(request, char_id):
     hero = get_object_or_404(Character, pk=char_id)
-    items = hero.items.all()
-
-    request.session['active_char_id'] = hero.id
-
-    return render(request, 'game/character_detail.html', {'hero': hero , 'items': items})
+    
+    # 1. Get all items owned by the hero
+    all_items = hero.items.all()
+    
+    # 2. Filter for active Gear (only equipped items)
+    gear_slots = {
+        slot: all_items.filter(item_type=slot, is_equipped=True).first()
+        for slot in ['HEAD', 'CHEST', 'GLOVES', 'FEET', 'WEAPON', 'RING', 'AMULET']
+    }
+    
+    # 3. Filter for the Bag (only items NOT equipped)
+    bag_items = all_items.filter(is_equipped=False)
+    
+    return render(request, 'game/character_detail.html', {
+        'hero': hero,
+        'gear': gear_slots,
+        'bag_items': bag_items
+    })
 
 def rename_hero(request, char_id, new_name):
     hero = get_object_or_404(Character, pk=char_id)
@@ -411,3 +407,96 @@ def generate_new_enemy(request, char_id):
     except Exception as e:
         print(f"ERROR OCCURRED: {e}")
         return redirect('character_detail', char_id=char_id)
+    
+def shop_page(request, char_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    
+    # Check if the shop already has items
+    shop_items = Item.objects.filter(is_in_shop=True)
+    
+    if not shop_items.exists():
+        try:
+            response = requests.post(
+                "http://localhost:8001/generate-shop-items/",
+                json={"player_level": hero.level},
+                timeout=120
+            )
+            if response.status_code == 200:
+                raw_content = response.json().get("response", "[]")
+                json_match = re.search(r'\[.*\]', raw_content, re.DOTALL)
+                
+                if json_match:
+                    ai_items = json.loads(json_match.group())
+                    for data in ai_items:
+                        Item.objects.create(
+                            name=data.get('name', 'Relic'),
+                            item_type=data.get('item_type', 'WEAPON').upper(), # Force uppercase to match choices
+                            health_bonus=data.get('health_bonus', 0),
+                            power_bonus=data.get('power_bonus', 0),
+                            price=data.get('price', 50),
+                            is_in_shop=True
+                        )
+                    # Refresh queryset after creation
+                    shop_items = Item.objects.filter(is_in_shop=True)
+        except Exception as e:
+            print(f"Shop population failed: {e}")
+
+    return render(request, 'game/shop_page.html', {
+        'hero': hero,
+        'shop_items': shop_items
+    })
+
+def buy_item(request, char_id, item_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    item = get_object_or_404(Item, pk=item_id)
+    
+    if request.method == "POST":
+        if hero.gold_amount >= item.price:
+            hero.gold_amount -= item.price
+            
+            # Apply specific enhancements
+            hero.max_health += item.health_bonus
+            hero.health += item.health_bonus # Heal for the bonus amount too
+            hero.strength += item.power_bonus
+            
+            item.owner = hero
+            item.is_in_shop = False
+            
+            hero.save()
+            item.save()
+            messages.success(request, f"Equipped {item.name}! HP +{item.health_bonus}, ATK +{item.power_bonus}")
+        else:
+            messages.error(request, "Insufficient gold.")
+            
+    return redirect('shop_page', char_id=hero.id)
+
+def equip_item(request, char_id, item_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    item_to_equip = get_object_or_404(Item, pk=item_id, owner=hero)
+
+    if request.method == "POST":
+        # 1. Find any currently equipped item of the same type and unequip it
+        Item.objects.filter(
+            owner=hero, 
+            item_type=item_to_equip.item_type, 
+            is_equipped=True
+        ).update(is_equipped=False)
+
+        # 2. Equip the new item
+        item_to_equip.is_equipped = True
+        item_to_equip.save()
+        
+        messages.success(request, f"Equipped {item_to_equip.name} to {item_to_equip.item_type} slot.")
+
+    return redirect('character_detail', char_id=hero.id)
+
+def unequip_item(request, char_id, item_id):
+    hero = get_object_or_404(Character, pk=char_id)
+    item = get_object_or_404(Item, pk=item_id, owner=hero)
+    
+    if request.method == "POST":
+        item.is_equipped = False
+        item.save()
+        messages.info(request, f"Unequipped {item.name}.")
+        
+    return redirect('character_detail', char_id=hero.id)

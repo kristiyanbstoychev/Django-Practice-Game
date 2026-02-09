@@ -59,6 +59,24 @@
         background: #d4ac0d;
         transform: scale(1.05);
     }
+    .completed-section {
+        border: 1px dashed #333;
+        background: #181818;
+        margin-top: 50px;
+    }
+    .completed-card {
+        border-left: 4px solid #333 !important;
+        opacity: 0.7;
+    }
+    .completion-stamp {
+        border: 2px solid #444;
+        color: #444;
+        padding: 5px 10px;
+        font-weight: bold;
+        transform: rotate(-10deg);
+        font-size: 0.7rem;
+        border-radius: 4px;
+    }
     </style>
 </head>
 <body>
@@ -113,6 +131,20 @@
         </div>
     {% empty %}
         <p>No active tasks. Accept a quest to begin.</p>
+    {% endfor %}
+</div>
+<div class="quest-section completed-section">
+    <h2 style="color: #888;">Completed Quests</h2>
+    {% for q in completed_quests %}
+        <div class="quest-card completed-card">
+            <div style="text-align: left;">
+                <strong style="color: #666; text-decoration: line-through;">{{ q.title }}</strong>
+                <p style="font-size: 0.8rem; color: #555; margin: 5px 0;">{{ q.description }}</p>
+            </div>
+            <div class="completion-stamp">COMPLETED</div>
+        </div>
+    {% empty %}
+        <p style="color: #444;">No completed quests yet. Adventure awaits!</p>
     {% endfor %}
 </div>
 

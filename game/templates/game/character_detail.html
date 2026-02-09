@@ -54,16 +54,14 @@
         transform: translateY(-5px);
         background: #252525;
     }
-    .inventory-section {
-        margin-top: 40px;
-        padding: 20px;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-        background: #1e1e1e;
-        border-radius: 12px;
-        border: 1px solid #333;
-    }
+
+    .inventory-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+        gap: 20px; 
+        padding: 20px; 
+        max-width: 1000px; margin: 0 auto; }
+
     .item-list {
         display: flex;
         flex-wrap: wrap;
@@ -91,12 +89,76 @@
         animation: spin 1s linear infinite; 
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .gear-column { display: flex; flex-direction: column; gap: 15px; }
+    .slot-card {
+        background: #1a1a1a;
+        border: 2px dashed #333;
+        border-radius: 8px;
+        padding: 15px;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: 0.3s;
+    }
+    .slot-filled { border-style: solid; border-color: #4a90e2; background: #1e1e1e; }
+    .slot-label { font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .equip-btn {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.75rem;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.equip-btn:hover {
+    background: #2ecc71;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Item Card Styling for the Bag */
+.inventory-grid .item-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.inventory-grid .item-card:hover {
+    border-color: #4a90e2;
+    background: #252525;
+    transform: translateY(-3px);
+}
+
+/* Ensure the label looks like a small badge */
+.inventory-grid .slot-label {
+    display: inline-block;
+    background: #333;
+    color: #888;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    align-self: center;
+}
 </style>
 
-<div id="loading-overlay">
+<div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column; justify-content: center; align-items: center;">
     <div class="spinner"></div>
-    <h2 style="color: #4a90e2; margin-top: 20px;">Traveling to the Adventurers' Guild...</h2>
-    <p>Preparing the local quest board.</p>
+    <h2 id="loader-title" style="color: #4a90e2; margin-top: 20px;">Loading...</h2>
+    <p id="loader-subtext"></p>
 </div>
 
 <div class="profile-header">
@@ -108,16 +170,54 @@
         <div class="stat-box">Experience: {{ hero.xp }}</div>
         <div class="stat-box">Gold: {{ hero.gold_amount }}</div>
     </div>
-    <div class="inventory-section">
-        <h2>Inventory</h2>
-        <div class="item-list">
-            {% for item in items %}
-                <span class="item-tag">{{ item.name }}</span>
-            {% empty %}
-                <p style="color: #666;">Inventory is empty.</p>
-            {% endfor %}
-        </div>
+    <h2 style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px auto 20px auto; max-width: 600px;">
+    Character Gear
+</h2>
+
+<div class="gear-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; max-width: 800px; margin: 0 auto; padding: 20px;">
+    
+    <div class="gear-column">
+        {% include "game/partials/gear_slot.html" with label="Ring" item=gear.RING %}
+        {% include "game/partials/gear_slot.html" with label="Amulet" item=gear.AMULET %}
     </div>
+
+    <div class="gear-column">
+        {% include "game/partials/gear_slot.html" with label="Head" item=gear.HEAD %}
+        {% include "game/partials/gear_slot.html" with label="Chest" item=gear.CHEST %}
+        {% include "game/partials/gear_slot.html" with label="Feet" item=gear.FEET %}
+    </div>
+
+    <div class="gear-column">
+        {% include "game/partials/gear_slot.html" with label="Weapon" item=gear.WEAPON %}
+        {% include "game/partials/gear_slot.html" with label="Gloves" item=gear.GLOVES %}
+    </div>
+</div>
+    <div class="inventory-section" style="margin-top: 40px; text-align: left;">
+    <h2 style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px auto 20px auto; max-width: 600px;">
+    Equipment & Bag
+    </h2>    
+    <div class="inventory-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; max-width: 1000px; margin: 0 auto;">
+    {% for item in bag_items %}
+        <div class="item-card">
+            <span class="slot-label">{{ item.item_type }}</span>
+            <h4 style="color: #4a90e2; margin: 5px 0;">{{ item.name }}</h4>
+            
+            <div style="font-size: 0.8rem; margin-bottom: 10px;">
+                {% if item.health_bonus > 0 %}<div style="color: #4ade80;">❤ +{{ item.health_bonus }} HP</div>{% endif %}
+                {% if item.power_bonus > 0 %}<div style="color: #ef4444;">⚔ +{{ item.power_bonus }} ATK</div>{% endif %}
+            </div>
+
+            <form action="{% url 'equip_item' hero.id item.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="equip-btn">Equip</button>
+            </form>
+        </div>
+    {% empty %}
+        <p style="grid-column: 1 / -1; color: #666; font-style: italic; text-align: center;">Your bag is empty. All gear is equipped or you need to visit the shop.</p>
+    {% endfor %}
+</div>
+</div>
+
     <h3>Location: {{ hero.current_location.name }}</h3>
 </div>
 
@@ -131,14 +231,21 @@
         <h3>Rest</h3>
         <p>Recover your health</p>
     </a>
-    <a href="{% url 'quest_log' hero.id %}" class="action-card" onclick="showLoader()">
+    <a href="{% url 'quest_log' hero.id %}" class="action-card" 
+        onclick="showLoader('Traveling to the Guild...', 'Drafting new contracts...')">
         <h3>Quests</h3>
         <p>View your progress</p>
+    </a>
+    <a href="{% url 'shop_page' hero.id %}" class="action-card" style="border-color: #f1c40f;" onclick="showLoader('Knocking on the shopkeeper door...', 'The shopkeeper rushes to stock up his shelfs  ...')">
+    <h3>Shop</h3>
+    <p>Spend your gold on gear</p>
     </a>
 </div>
 
 <script>
-    function showLoader() {
+function showLoader(title, subtext) {
+        document.getElementById('loader-title').innerText = title;
+        document.getElementById('loader-subtext').innerText = subtext;
         document.getElementById('loading-overlay').style.display = 'flex';
     }
 </script>

@@ -101,9 +101,9 @@
     {% for enemy in enemies %}
         <div class="enemy-row {% if enemy.is_defeated %}defeated-row{% endif %}">
             <div>
-                <strong>{{ enemy.name }}</strong>
+                <strong>{{ enemy.name }} (HP: {{ enemy.health }}) (Power: {{ enemy.attack_power }})</strong>
                 {% if enemy.is_defeated %}
-                    <span style="color: #4ade80; margin-left: 10px;">[SLAIN]</span>
+                    <span style="color: #4ade80; margin-left: 10px;">[DEFEATED]</span>
                 {% endif %}
             </div>
             
@@ -131,7 +131,6 @@
     {% endif %}
     
     <a href="{% url 'recover_health' hero.id quest.id %}" class="btn-action">
-        <h3>Recover</h3>
         <p>Recover your health</p>
     </a>
 
