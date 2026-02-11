@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; text-align: center; }
+        .shop-header { background: #1e1e1e; padding: 30px; border-bottom: 3px solid #f1c40f; margin-bottom: 20px; }
+        .gold-display { font-size: 1.5rem; color: #f1c40f; font-weight: bold; }
+        .inventory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .item-card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; transition: 0.3s; }
+        .item-card:hover { border-color: #f1c40f; transform: translateY(-5px); }
+        .buy-btn { background: #f1c40f; color: #121212; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .back-btn { display: inline-block; margin-top: 20px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column; justify-content: center; align-items: center;">
+        <div class="spinner"></div>
+        <h2 style="color: #f1c40f; margin-top: 20px;">Unpacking Shipments...</h2>
+        <p>Checking the stock for a Level {{ hero.level }} adventurer.</p>
+    </div>
+
+    <div class="shop-header">
+        <h1>The Shopkeeper</h1>
+        <div class="gold-display">Your Gold: {{ hero.gold_amount }}g</div>
+    </div>
+
+<div class="inventory-grid">
+    {% for item in shop_items %}
+        <div class="item-card">
+            <span style="background: #333; color: #aaa; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
+        {{ item.item_type }}
+            </span>
+            <h3 style="color: #4a90e2; margin: 5px 0;">{{ item.name }}</h3>
+        <div style="margin: 10px 0; font-size: 0.9rem;">
+        {% if item.health_bonus > 0 %}<span style="color: #4ade80;">❤ +{{ item.health_bonus }}</span>{% endif %}
+        {% if item.power_bonus > 0 %}<span style="color: #ef4444;">⚔ +{{ item.power_bonus }}</span>{% endif %}
+        </div>
+        <p class="gold-display" style="font-size: 1.1rem;">Price: {{ item.price }}g</p>
+            
+    <form action="{% url 'buy_item' hero.id item.id %}" method="POST">
+    {% csrf_token %}
+    <button type="submit" class="buy-btn" {% if hero.gold_amount < item.price %}disabled{% endif %}>
+        BUY FOR {{ item.price }}g
+    </button>
+    </form>
+        </div>
+    {% empty %}
+        <p>The shop is currently empty.</p>
+    {% endfor %}
+</div>
+
+    <a href="{% url 'character_detail' hero.id %}" class="back-btn">← Return to Town</a>
+</body>
+</html>

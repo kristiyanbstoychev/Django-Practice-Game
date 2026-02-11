@@ -1,0 +1,35 @@
+<style>
+    .unequip-btn {
+    background: transparent;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: 0.2s;
+}
+
+.unequip-btn:hover {
+    background: #e74c3c;
+    color: white;
+}
+</style>
+<div class="slot-card {% if item %}slot-filled{% endif %}">
+    <div class="slot-label">{{ label }}</div>
+    {% if item %}
+        <strong style="color: #4a90e2; font-size: 0.9rem;">{{ item.name }}</strong>
+        <div style="font-size: 0.75rem;">
+            {% if item.health_bonus > 0 %}<span style="color: #4ade80;">❤+{{ item.health_bonus }}</span> {% endif %}
+            {% if item.power_bonus > 0 %}<span style="color: #ef4444;">⚔+{{ item.power_bonus }}</span>{% endif %}
+        </div>
+        
+        <form action="{% url 'unequip_item' hero.id item.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="unequip-btn">Remove</button>
+        </form>
+    {% else %}
+        <span style="color: #444; font-size: 0.8rem; font-style: italic;">Empty Slot</span>
+    {% endif %}
+</div>

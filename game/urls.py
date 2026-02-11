@@ -23,4 +23,7 @@ urlpatterns = [
     path('generate-enemy/<int:char_id>/', views.generate_new_enemy, name='generate_new_enemy'),
     path('battle/<int:char_id>/<int:enemy_id>/', views.battle_arena, name='battle_arena'),
     path('quest-detail/<int:char_id>/<int:quest_id>/', views.quest_detail, name='quest_detail'),
+    path('shop/<int:char_id>/', views.shop_page, name='shop_page'),
+    path('equip-item/<int:char_id>/<int:item_id>/', views.equip_item, name='equip_item'),
+    path('unequip-item/<int:char_id>/<int:item_id>/', views.unequip_item, name='unequip_item'),
 ]

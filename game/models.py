@@ -72,19 +72,39 @@ class Character(models.Model):
     def __str__(self):
         return self.name
     
-# ===== ITEM MODEL =====
-# This represents equipment or loot
 class Item(models.Model):
+    # Standardizing the categories
+    class ItemType(models.TextChoices):
+        HEAD = 'HEAD', 'Head'
+        CHEST = 'CHEST', 'Chest'
+        FEET = 'FEET', 'Feet'
+        GLOVES = 'GLOVES', 'Gloves'
+        RING = 'RING', 'Ring'
+        AMULET = 'AMULET', 'Amulet'
+        WEAPON = 'WEAPON', 'Weapon'
+
     name = models.CharField(max_length=100)
-    power = models.IntegerField(default=5)
+    is_equipped = models.BooleanField(default=False)
+    item_type = models.CharField(
+        max_length=10, 
+        choices=ItemType.choices, 
+        default=ItemType.WEAPON
+    )
+    health_bonus = models.IntegerField(default=0)
+    power_bonus = models.IntegerField(default=0)
+    price = models.IntegerField(default=50)
+    is_in_shop = models.BooleanField(default=False)
     
-    # This is the "Tether" (ForeignKey)
-    # It links the item to a specific Character
-    # 'on_delete=models.CASCADE' means if the hero is deleted, the item is too
-    owner = models.ForeignKey(Character, on_delete=models.CASCADE, related_name="items")
+    owner = models.ForeignKey(
+        'Character', 
+        on_delete=models.CASCADE, 
+        related_name="items", 
+        null=True, 
+        blank=True
+    )
 
     def __str__(self):
-        return f"{self.name} (Owned by {self.owner.name})"
+        return f"[{self.item_type}] {self.name}"
     
 # ===== QUEST MODEL =====
 class Quest(models.Model):

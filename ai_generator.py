@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import requests
 import json
 import re
+import random
 
 app = FastAPI()
 
@@ -28,11 +29,15 @@ def generate_enemy(req: dict):
     health = req.get('player_health', 100)
     power = req.get('player_strength', 50)
     context = req.get('context', 'a dark forest')
+
+    enemy_health = round(random.uniform(health * 1.5, health * 1.8), 2)
+    enemy_power = round(random.uniform(power * 0.4, power * 0.6), 2)
+    enemy_xp_reward = round(random.uniform(power * 0.2, power * 0.4), 2)
     
     prompt = (
         "You are a Game Master for an RPG. Create a new enemy. "
         f"The context is: {context}. "
-        f"Return ONLY a JSON object with this exact keys, no additional text : name, health({health * 1.5}), level({level}) attack_power({power * 0.4}), xp_reward({power * 0.2})"
+        f"Return ONLY a JSON object with this exact keys, no additional text : name, health({enemy_health}), level({level}) attack_power({enemy_power}), xp_reward({enemy_xp_reward})"
     )
 
     print(f"--- PROMPT SENT TO OLLAMA ---\n{prompt}")
@@ -110,4 +115,29 @@ def generate_quest_enemies(req: dict):
     
     print(f"--- RESPONSE FROM OLLAMA --- \n {response.json().get("response", "")}")
 
+    return response.json()
+
+@app.post("/generate-shop-items/")
+def generate_shop_items(req: dict):
+    level = req.get('player_level', 1)
+    types = "HEAD, CHEST, FEET, GLOVES, RING, AMULET, WEAPON"
+
+    prompt = (
+        f"Generate 3 unique RPG items for a Level {level} character. "
+        f"Each item must have a type from this list: [{types}]. "
+        "Return a JSON list with: 'name', 'item_type', 'health_bonus', 'power_bonus', 'price(10g)'."
+        "Return ONLY the JSON list."
+    )
+    
+    print(f"---- PROMPT SENT TO AI ---- \n {prompt}")
+
+    response = requests.post(OLLAMA_URL, json={
+        "model": MODEL_NAME,
+        "prompt": prompt,
+        "stream": False,
+        "format": "json"
+    }, timeout=120)
+
+    print(f"---- RESPONSE FROM AI ---- \n {response.json().get("response", "")}")
+    
     return response.json()
